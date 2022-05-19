@@ -10,9 +10,11 @@ function makeid(length) {
     return result
 }
 
+const TARGET = 'http://localhost:4001'
+
 const testuser = {
-    mail: `${makeid(10)}@test.de`,
-    abbr: `${makeid(6)}`,
+    mail: 'fuaUjGSZjy@test.de' || `${makeid(10)}@test.de`,
+    abbr: 'VRGOFy' || `${makeid(6)}`,
     password: 'chemotion',
     cookie: {},
 }
@@ -22,6 +24,8 @@ const adminuser = {
     password: 'PleaseChangeYourPassword',
     cookie: {},
 }
+
+const globals = { polling: false }
 
 // To turn off all uncaught exception handling
 Cypress.on('uncaught:exception', (err, runnable) => {
@@ -43,11 +47,13 @@ describe('Base Tests', () => {
 
     it('Visit Chemotion', () => {
         cy.clearCookie('_chemotion_session')
-        cy.visit('https://seat1.chemotion.scc.kit.edu/')
+        cy.visit(TARGET)
         cy.get('#welcomeMessage').should(
             'contain.text',
             'Your Chemotion instance is ready!'
         )
+
+        console.log(testuser)
     })
 
     it('Admin Login', () => {
@@ -82,7 +88,7 @@ describe('Base Tests', () => {
 describe('User Test', () => {
     it('Visit Chemotion', () => {
         cy.clearCookie('_chemotion_session')
-        cy.visit('https://seat1.chemotion.scc.kit.edu/')
+        cy.visit(TARGET)
         cy.get('#welcomeMessage').should(
             'contain.text',
             'Your Chemotion instance is ready!'
@@ -97,7 +103,9 @@ describe('User Test', () => {
     })
     if (true)
         it('Create Collection', () => {
-            cy.intercept('GET', '/api/v1/collections/roots.json').as('colletions1')
+            cy.intercept('GET', '/api/v1/collections/roots.json').as(
+                'colletions1'
+            )
             cy.intercept('GET', '/api/v1/collections/shared_roots.json').as(
                 'colletions2'
             )
@@ -108,6 +116,8 @@ describe('User Test', () => {
                 'GET',
                 '/api/v1/syncCollections/sync_remote_roots.json'
             ).as('colletions4')
+
+            cy.intercept('PATCH', '/api/v1/collections').as('collections.patch')
 
             cy.intercept(
                 {
@@ -134,38 +144,68 @@ describe('User Test', () => {
 
             cy.get('#col-mgnt-btn').click()
             cy.wait(
-                ['@colletions1', '@colletions2', '@colletions3', '@colletions4'],
+                [
+                    '@colletions1',
+                    '@colletions2',
+                    '@colletions3',
+                    '@colletions4',
+                ],
                 ro
             )
-            cy.wait(2000)
             cy.get('#mycol_-1').click()
             cy.get('input[type=text][value="New Collection"]').clear()
             cy.get('.node > input[type=text][value=""]')
                 .click()
                 .type('Pedro Collection')
-            cy.wait(2000)
             cy.get('#my-collections-update-btn').click()
-            cy.wait(['@colletions1', '@colletions2', '@colletions3'], ro)
-            cy.get('.tree-wrapper .tree-view .title').contains('Pedro Collection')
+            cy.wait('@collections.patch')
+                .its('response.statusCode')
+                .should('be.equal', 200)
+            cy.request('/api/v1/collections/roots.json').should((response) => {
+                expect(response).property('status').to.equal(200)
+                expect(response.body).to.have.property('collections')
+                const collectionCount = response.body.collections.length
+                expect(
+                    response.body.collections[collectionCount - 1].label
+                ).to.equal('Pedro Collection')
+            })
         })
-    
+
     it('Import Data', () => {
-        cy.intercept('GET', '/api/v1/collections/roots.json').as('colletions1')
-        cy.intercept('POST', '/api/v1/collections/imports/').as('doImportRequest')
-        const timeoutOptions = { requestTimeout: 120000, responseTimeout: 240000 }
+        cy.intercept('POST', '/api/v1/collections/imports/').as(
+            'doImportRequest'
+        )
 
         cy.get('#export-dropdown').click()
         cy.get('a[role="menuitem"]').contains('Import collections').click()
         cy.get('input[type="file"]').attachFile('demo.zip')
-        cy.get('div[role="toolbar"] button')
-            .contains('Import')
-            .click()
-        cy.wait("@doImportRequest")
-        cy.wait('@colletions1', timeoutOptions).then((request) => {
-            expect(request.response).property('statusCode').to.equal(200)
-            expect(request.response).property('body').to.have.property('collections')            
-            const labels = Cypress._.map(request.response.body.collections, 'label')
-            expect(labels).to.include("My Data")
-        })
+        cy.get('div[role="toolbar"] button').contains('Import').click()
+        cy.wait('@doImportRequest')
+
+        function req() {
+            cy.wait(5000)
+            cy.request(`/api/v1/collections/roots.json`).then((response) => {
+                cy.log(response)
+                expect(response.status).to.equal(200)
+                expect(response.body).to.have.property('collections')
+
+                const collectionCount = response.body.collections.length
+                cy.log(response.body.collections, collectionCount)
+                if (collectionCount > 0) {
+                    const latestEntry =
+                        response.body.collections[collectionCount - 1]
+                    expect(latestEntry).to.have.property('label')
+                    if (latestEntry.label == 'My Data') {
+                        console.log('All good')
+                        return
+                    }
+                }
+                req()
+            })
+        }
+
+        req()
+
+        cy.log('done.')
     })
 })

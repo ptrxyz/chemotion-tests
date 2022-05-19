@@ -3,10 +3,12 @@ lockfileVersion: 5.4
 specifiers:
   cypress: ^9.5.4
   cypress-file-upload: ^5.0.8
+  cypress-wait-until: ^1.7.2
 
 devDependencies:
   cypress: 9.5.4
   cypress-file-upload: 5.0.8_cypress@9.5.4
+  cypress-wait-until: 1.7.2
 
 packages:
 
@@ -292,6 +294,10 @@ packages:
       cypress: '>3.0.0'
     dependencies:
       cypress: 9.5.4
+    dev: true
+
+  /cypress-wait-until/1.7.2:
+    resolution: {integrity: sha512-uZ+M8/MqRcpf+FII/UZrU7g1qYZ4aVlHcgyVopnladyoBrpoaMJ4PKZDrdOJ05H5RHbr7s9Tid635X3E+ZLU/Q==}
     dev: true
 
   /cypress/9.5.4:
