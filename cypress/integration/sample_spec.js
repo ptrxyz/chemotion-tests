@@ -10,11 +10,11 @@ function makeid(length) {
     return result
 }
 
-const TARGET = 'http://localhost:4001'
+const TARGET = 'http://localhost:4000'
 
 const testuser = {
-    mail: 'fuaUjGSZjy@test.de' || `${makeid(10)}@test.de`,
-    abbr: 'VRGOFy' || `${makeid(6)}`,
+    mail: `${makeid(10)}@test.de`,
+    abbr: `${makeid(6)}`,
     password: 'chemotion',
     cookie: {},
 }
@@ -206,6 +206,23 @@ describe('User Test', () => {
 
         req()
 
+        cy.log('done.')
+    })
+
+    it('Export Collection', () => {
+
+        cy.getCookie('_chemotion_session')
+            .should('exist')
+            .then((c) => {
+                console.log(c)
+                adminuser.cookie = c
+            })
+
+        cy.wait(2000)
+        cy.get('#export-dropdown').click()
+        cy.get('a[role="menuitem"]').contains('Export collections').click()
+        cy.get('#export-collection-check-all').click()
+        cy.get('#md-export-dropdown').click()
         cy.log('done.')
     })
 })
