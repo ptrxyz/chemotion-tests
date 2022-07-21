@@ -13,8 +13,8 @@ function makeid(length) {
 const TARGET = 'http://localhost:4000'
 
 const testuser = {
-    mail: `${makeid(10)}@test.de`,
-    abbr: `${makeid(6)}`,
+    mail: 'fuaUjGSZjy@test.de' || `${makeid(10)}@test.de`,
+    abbr: 'VRGOFy' || `${makeid(6)}`,
     password: 'chemotion',
     cookie: {},
 }
@@ -210,7 +210,7 @@ describe('User Test', () => {
     })
 
     it('Export Collection', () => {
-
+        // export a collection
         cy.getCookie('_chemotion_session')
             .should('exist')
             .then((c) => {
@@ -224,5 +224,19 @@ describe('User Test', () => {
         cy.get('#export-collection-check-all').click()
         cy.get('#md-export-dropdown').click()
         cy.log('done.')
+    })
+
+    it('Remain logout while back browsing', () => {
+
+        // after logout browse back and access homepage to see if it logs out correctly
+        cy.get('a[title="Log out"]', { timeout: 10000 }).should('be.visible')
+        cy.get('a[title="Log out"]').click({force: true})
+        cy.go('back')
+        cy.visit(TARGET)
+        cy.get('#welcomeMessage').should(
+            'contain.text',
+            'Your Chemotion instance is ready!'
+        )
+        cy.log("Log out successfuly ")
     })
 })
