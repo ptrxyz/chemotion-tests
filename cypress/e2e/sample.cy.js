@@ -10,8 +10,6 @@ function makeid(length) {
     return result
 }
 
-const TARGET = 'http://localhost:4000'
-
 const testuser = {
     mail: 'fuaUjGSZjy@test.de' || `${makeid(10)}@test.de`,
     abbr: 'VRGOFy' || `${makeid(6)}`,
@@ -21,7 +19,7 @@ const testuser = {
 
 const adminuser = {
     abbr: 'ADM',
-    password: 'PleaseChangeYourPassword',
+    password: 'chemotion',
     cookie: {},
 }
 
@@ -47,7 +45,7 @@ describe('Base Tests', () => {
 
     it('Visit Chemotion', () => {
         cy.clearCookie('_chemotion_session')
-        cy.visit(TARGET)
+        cy.visit(Cypress.env('TARGET'))
         cy.get('#welcomeMessage').should(
             'contain.text',
             'Your Chemotion instance is ready!'
@@ -88,7 +86,7 @@ describe('Base Tests', () => {
 describe('User Test', () => {
     it('Visit Chemotion', () => {
         cy.clearCookie('_chemotion_session')
-        cy.visit(TARGET)
+        cy.visit(Cypress.env('TARGET'))
         cy.get('#welcomeMessage').should(
             'contain.text',
             'Your Chemotion instance is ready!'
@@ -232,7 +230,7 @@ describe('User Test', () => {
         cy.get('a[title="Log out"]', { timeout: 10000 }).should('be.visible')
         cy.get('a[title="Log out"]').click({force: true})
         cy.go('back')
-        cy.visit(TARGET)
+        cy.visit(Cypress.env('TARGET'))
         cy.get('#welcomeMessage').should(
             'contain.text',
             'Your Chemotion instance is ready!'

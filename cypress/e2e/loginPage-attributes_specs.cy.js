@@ -1,6 +1,6 @@
 describe('greets with Sign in', () => {
     beforeEach(() => {
-      cy.visit('http://localhost:3000/users/sign_in')
+      cy.visit(Cypress.env('login_url'))
     })
 
     it('greets with Sign in', () => {
