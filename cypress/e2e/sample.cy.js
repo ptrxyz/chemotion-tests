@@ -10,16 +10,30 @@ function makeid(length) {
     return result
 }
 
+function getMinMaxLimits(arr){
+    // This function returns lower-1 and upper+1 bound values of abbreviaton length defined in user_props.yml
+    var minMaxLimits = [arr[0]-1, arr[1]+1]
+    return minMaxLimits
+}
+
 const testuser = {
-    mail: 'fuaUjGSZjy@test.de' || `${makeid(10)}@test.de`,
-    abbr: 'VRGOFy' || `${makeid(6)}`,
+    mail: `${makeid(10)}@test.de`,
+    abbr: `${makeid(6)}`,
     password: 'chemotion',
     cookie: {},
 }
 
+const testdevice = {
+    mail: `${makeid(10)}@device.de`,
+    abbr: `${makeid(6)}`,
+    password: 'chemotion',
+    cookie: {},
+}
+
+
 const adminuser = {
     abbr: 'ADM',
-    password: 'chemotion',
+    password: 'PleaseChangeYourPassword',
     cookie: {},
 }
 
@@ -61,6 +75,65 @@ describe('Base Tests', () => {
         cy.get('h1').should('have.text', 'ELN Administration')
     })
 
+    // test device creation
+    for (const elem of getMinMaxLimits(Cypress.env("lengthDevice"))){
+        it('Create Device with lenght: ' + elem , () => {
+            cy.get('#AdminHome > div > div > div.card-content.container-fluid.row')
+                .contains('User Management')
+                .click()
+            cy.contains('New User').click()
+            cy.get('input[name=email]').type(testuser.mail)
+            cy.get('input[name=password]').type(testuser.password)
+            cy.get('#formControlPasswordConfirmation').type(testuser.password)
+            cy.get('input[name=firstname]').type('chemotion')
+            cy.get('input[name=lastname]').type('chemotion')
+            cy.get('input[name=nameAbbr]').type(`${makeid(elem)}`)
+            cy.get('#formControlsType').get('select').select('Device')
+            cy.get('button').contains('Create user').click()
+            cy.get('#formControlMessage').should("have.value","Validation failed: Name abbreviation has to be 2 to 6 characters long, Name abbreviation can be alphanumeric, middle '_' and '-' are allowed, but leading digit, or trailing '-' and '_' are not.")
+            cy.get('button.close').click()
+        })
+    }
+
+    // Test dummy user creation with reserved list
+    for (let i=0; i<Cypress.env("reservedList").length; i++){
+        it('Create Dummy with ' + Cypress.env("reservedList")[i] +': reserved Keywords', () => {
+            cy.get('#AdminHome > div > div > div.card-content.container-fluid.row')
+                .contains('User Management')
+                .click()
+            cy.contains('New User').click()
+            cy.get('input[name=email]').type(testuser.mail)
+            cy.get('input[name=password]').type(testuser.password)
+            cy.get('#formControlPasswordConfirmation').type(testuser.password)
+            cy.get('input[name=firstname]').type('chemotion')
+            cy.get('input[name=lastname]').type('chemotion')
+            cy.get('input[name=nameAbbr]').type(Cypress.env("reservedList")[i])
+            cy.get('button').contains('Create user').click()
+            cy.get('#formControlMessage').should('have.value', 'Validation failed: Name abbreviation is reserved, please change')
+            cy.get('button.close').click()
+        })
+    }
+
+    // test dummy user creation within defined length of abbreviation
+    for (const elem of getMinMaxLimits(Cypress.env("lengthDefault"))){
+        it('Create Dummy with lenght: ' + elem , () => {
+            cy.get('#AdminHome > div > div > div.card-content.container-fluid.row')
+                .contains('User Management')
+                .click()
+            cy.contains('New User').click()
+            cy.get('input[name=email]').type(testuser.mail)
+            cy.get('input[name=password]').type(testuser.password)
+            cy.get('#formControlPasswordConfirmation').type(testuser.password)
+            cy.get('input[name=firstname]').type('chemotion')
+            cy.get('input[name=lastname]').type('chemotion')
+            cy.get('input[name=nameAbbr]').type(`${makeid(elem)}`)
+            cy.get('button').contains('Create user').click()
+            cy.get('#formControlMessage').should("have.value","Validation failed: Name abbreviation has to be 2 to 8 characters long, Name abbreviation can be alphanumeric, middle '_' and '-' are allowed, but leading digit, or trailing '-' and '_' are not.")
+            cy.get('button.close').click()
+        })
+    }
+
+    // Test dummy user creation with valid parameters
     it('Create Dummy User', () => {
         cy.get('#AdminHome > div > div > div.card-content.container-fluid.row')
             .contains('User Management')
