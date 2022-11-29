@@ -1,5 +1,5 @@
 # chemotion-tests
-Cypress tests for chemotion
+Cypress tests for chemotion ELN version 1.4.1
 
 ## Instruction
 
