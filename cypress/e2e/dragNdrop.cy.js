@@ -1,9 +1,9 @@
 const personuser = {
-    mail: 'sbrcxrintr@eln.edu',
-    abbr: 'QdZ',
-    password: 'chemotion',
-    firstname: 'test',
-    lastname: 'Complat User',
+    mail: 'complat.user1@eln.edu',
+    abbr: 'CU1',
+    password: '@complat',
+    firstname: 'User1',
+    lastname: 'Complat',
     cookie: {},
 }
 
@@ -73,7 +73,7 @@ describe('User Test', () => {
                 })
             const ro = { requestTimeout: 60000, responseTimeout: 90000 }
 
-            cy.get('#col-mgnt-btn').click()
+            cy.get('#collection-management-button').click()
             cy.wait(
                 [
                     '@colletions1',
@@ -84,30 +84,27 @@ describe('User Test', () => {
                 ro
             )
 
-            cy.get('#mycol_-1').click()
+            cy.get('#add-new-collection-button').click()
             cy.get('input[type=text][value="New Collection"]').clear().type('test-collection')
 
-            cy.get('#mycol_-1').click()
+            cy.get('#add-new-collection-button').click()
             cy.get('input[type=text][value="New Collection"]').clear().type('sub-collection')
 
-
-            cy.get('#my-collections-update-btn').click()
+            cy.get('#save-collections-button').click()
             cy.wait('@collections.patch')
                 .its('response.statusCode')
                 .should('be.equal', 200)
 
-            cy.get('#collection-management-tab-pane-0 > div > div > div > div.children > div:nth-child(4)')
+            cy.get('#collection-management-tab-pane-0 > div > div > div > div.children > div:nth-child(3)')
             .trigger("mousedown", "center", { button: 0 }, { force: true })
             .trigger("mousemove", 535, 20)
-            cy.get('#collection-management-tab-pane-0 > div > div > div > div.children > div:nth-child(3) > div.children')
+            cy.get('#collection-management-tab-pane-0 > div > div > div > div.children > div:nth-child(2) > div.children')
             .trigger("mouseup", {force: true})
-            cy.get('#my-collections-update-btn').click()
+            cy.get('#save-collections-button').click()
 
             cy.get('#tree-id-test-collection').invoke('attr', 'style', 'display: visible')
             cy.get('#tree-id-sub-collection').click()
-            cy.wait(1000)
-
-            cy.wait(1000)
+            cy.wait(2000)
 
             for (const elem of sampleList){
                 cy.get('#app > div > div.card-navigation.row > nav > div > ul > div:nth-child(3) > div:nth-child(2) > div > div > button:nth-child(1) > div > i.fa.fa-plus').click()

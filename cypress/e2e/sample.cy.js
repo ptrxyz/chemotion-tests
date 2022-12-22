@@ -41,7 +41,7 @@ const personuser = {
 
 const adminuser = {
     abbr: 'ADM',
-    password: 'chemotion',
+    password: 'PleaseChangeYourPassword',
     cookie: {},
 }
 
@@ -93,7 +93,7 @@ describe('Base Tests', () => {
             cy.get('input[name=nameAbbr]').type(`${makeid(elem)}`)
             cy.get('#formControlsType').get('select').select('Device')
             cy.get('button').contains('Create user').click()
-            cy.get('#formControlMessage').should("have.value","Validation failed: Name abbreviation has to be 2 to 6 characters long, Name abbreviation can be alphanumeric, middle '_' and '-' are allowed, but leading digit, or trailing '-' and '_' are not.")
+            cy.get('#formControlMessage').should('have.value',"Validation failed: Name abbreviation has to be 2 to 6 characters long, Name abbreviation can be alphanumeric, middle '_' and '-' are allowed, but leading digit, or trailing '-' and '_' are not., Email from throwable email providers not accepted")
             cy.get('button.close').click()
         })
     }
@@ -112,7 +112,7 @@ describe('Base Tests', () => {
             cy.get('input[name=lastname]').type('chemotion')
             cy.get('input[name=nameAbbr]').type(Cypress.env("reservedList")[i])
             cy.get('button').contains('Create user').click()
-            cy.get('#formControlMessage').should('have.value', 'Validation failed: Name abbreviation is reserved, please change')
+            cy.get('#formControlMessage').should('have.value', 'Validation failed: Name abbreviation is reserved, please change, Email from throwable email providers not accepted')
             cy.get('button.close').click()
         })
     }
@@ -131,7 +131,7 @@ describe('Base Tests', () => {
             cy.get('input[name=lastname]').type('chemotion')
             cy.get('input[name=nameAbbr]').type(`${makeid(elem)}`)
             cy.get('button').contains('Create user').click()
-            cy.get('#formControlMessage').should("have.value","Validation failed: Name abbreviation has to be 2 to 3 characters long, Name abbreviation can be alphanumeric, middle '_' and '-' are allowed, but leading digit, or trailing '-' and '_' are not.")
+            cy.get('#formControlMessage').should('have.value',"Validation failed: Name abbreviation has to be 2 to 3 characters long, Name abbreviation can be alphanumeric, middle '_' and '-' are allowed, but leading digit, or trailing '-' and '_' are not., Email from throwable email providers not accepted")
             cy.get('button.close').click()
         })
     }
