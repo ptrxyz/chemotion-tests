@@ -10,12 +10,32 @@ function makeid(length) {
     return result
 }
 
-const TARGET = 'http://localhost:4001'
+function getMinMaxLimits(arr){
+    // This function returns lower-1 and upper+1 bound values of abbreviaton length defined in user_props.yml
+    var minMaxLimits = [arr[0]-1, arr[1]+1]
+    return minMaxLimits
+}
 
 const testuser = {
-    mail: 'fuaUjGSZjy@test.de' || `${makeid(10)}@test.de`,
-    abbr: 'VRGOFy' || `${makeid(6)}`,
+    mail: `${makeid(10)}@test.de`,
+    abbr: `${makeid(3)}`,
     password: 'chemotion',
+    cookie: {},
+}
+
+const testdevice = {
+    mail: `${makeid(10)}@device.de`,
+    abbr: `${makeid(6)}`,
+    password: 'chemotion',
+    cookie: {},
+}
+
+const personuser = {
+    mail: `${makeid(10)}@eln.edu`,
+    abbr: `${makeid(3)}`,
+    password: 'chemotion',
+    firstname: 'test',
+    lastname: 'Complat User',
     cookie: {},
 }
 
@@ -47,13 +67,8 @@ describe('Base Tests', () => {
 
     it('Visit Chemotion', () => {
         cy.clearCookie('_chemotion_session')
-        cy.visit(TARGET)
-        cy.get('#welcomeMessage').should(
-            'contain.text',
-            'Your Chemotion instance is ready!'
-        )
-
-        console.log(testuser)
+        cy.visit(Cypress.env('TARGET'))
+        cy.contains('Welcome to Chemotion Electronic Lab Notebook.')
     })
 
     it('Admin Login', () => {
@@ -63,21 +78,80 @@ describe('Base Tests', () => {
         cy.get('h1').should('have.text', 'ELN Administration')
     })
 
+    // test device creation
+    for (const elem of getMinMaxLimits(Cypress.env("lengthDevice"))){
+        it('Create Device with lenght: ' + elem , () => {
+            cy.get('#AdminHome > div > div > div.card-content.container-fluid.row')
+                .contains('User Management')
+                .click()
+            cy.contains('New User').click()
+            cy.get('input[name=email]').type(testuser.mail)
+            cy.get('input[name=password]').type(testuser.password)
+            cy.get('#formControlPasswordConfirmation').type(testuser.password)
+            cy.get('input[name=firstname]').type('chemotion')
+            cy.get('input[name=lastname]').type('chemotion')
+            cy.get('input[name=nameAbbr]').type(`${makeid(elem)}`)
+            cy.get('#formControlsType').get('select').select('Device')
+            cy.get('button').contains('Create user').click()
+            cy.get('#formControlMessage').should('have.value',"Validation failed: Name abbreviation has to be 2 to 6 characters long, Name abbreviation can be alphanumeric, middle '_' and '-' are allowed, but leading digit, or trailing '-' and '_' are not., Email from throwable email providers not accepted")
+            cy.get('button.close').click()
+        })
+    }
+
+    // Test dummy user creation with reserved list
+    for (let i=0; i<Cypress.env("reservedList").length; i++){
+        it('Create Dummy with ' + Cypress.env("reservedList")[i] +': reserved Keywords', () => {
+            cy.get('#AdminHome > div > div > div.card-content.container-fluid.row')
+                .contains('User Management')
+                .click()
+            cy.contains('New User').click()
+            cy.get('input[name=email]').type(testuser.mail)
+            cy.get('input[name=password]').type(testuser.password)
+            cy.get('#formControlPasswordConfirmation').type(testuser.password)
+            cy.get('input[name=firstname]').type('chemotion')
+            cy.get('input[name=lastname]').type('chemotion')
+            cy.get('input[name=nameAbbr]').type(Cypress.env("reservedList")[i])
+            cy.get('button').contains('Create user').click()
+            cy.get('#formControlMessage').should('have.value', 'Validation failed: Name abbreviation is reserved, please change, Email from throwable email providers not accepted')
+            cy.get('button.close').click()
+        })
+    }
+
+    // test dummy user creation within defined length of abbreviation
+    for (const elem of getMinMaxLimits(Cypress.env("lengthDefault"))){
+        it('Create Dummy with length: ' + elem , () => {
+            cy.get('#AdminHome > div > div > div.card-content.container-fluid.row')
+                .contains('User Management')
+                .click()
+            cy.contains('New User').click()
+            cy.get('input[name=email]').type(testuser.mail)
+            cy.get('input[name=password]').type(testuser.password)
+            cy.get('#formControlPasswordConfirmation').type(testuser.password)
+            cy.get('input[name=firstname]').type('chemotion')
+            cy.get('input[name=lastname]').type('chemotion')
+            cy.get('input[name=nameAbbr]').type(`${makeid(elem)}`)
+            cy.get('button').contains('Create user').click()
+            cy.get('#formControlMessage').should('have.value',"Validation failed: Name abbreviation has to be 2 to 3 characters long, Name abbreviation can be alphanumeric, middle '_' and '-' are allowed, but leading digit, or trailing '-' and '_' are not., Email from throwable email providers not accepted")
+            cy.get('button.close').click()
+        })
+    }
+
+    // Test dummy user creation with valid parameters
     it('Create Dummy User', () => {
         cy.get('#AdminHome > div > div > div.card-content.container-fluid.row')
             .contains('User Management')
             .click()
         cy.contains('New User').click()
-        cy.get('input[name=email]').type(testuser.mail)
-        cy.get('input[name=password]').type(testuser.password)
-        cy.get('#formControlPasswordConfirmation').type(testuser.password)
-        cy.get('input[name=firstname]').type('chemotion')
-        cy.get('input[name=lastname]').type('chemotion')
-        cy.get('input[name=nameAbbr]').type(testuser.abbr)
+        cy.get('input[name=email]').type(personuser.mail)
+        cy.get('input[name=password]').type(personuser.password)
+        cy.get('#formControlPasswordConfirmation').type(personuser.password)
+        cy.get('input[name=firstname]').type(personuser.firstname)
+        cy.get('input[name=lastname]').type(personuser.lastname)
+        cy.get('input[name=nameAbbr]').type(personuser.abbr)
         cy.get('button').contains('Create user').click()
         cy.get('#formControlMessage').should('have.value', 'New user created.')
         cy.get('button.close').click()
-        cy.get('table').contains(testuser.mail.toLowerCase())
+        cy.get('table').contains(personuser.mail.toLowerCase())
     })
 
     it('Logout', () => {
@@ -88,16 +162,13 @@ describe('Base Tests', () => {
 describe('User Test', () => {
     it('Visit Chemotion', () => {
         cy.clearCookie('_chemotion_session')
-        cy.visit(TARGET)
-        cy.get('#welcomeMessage').should(
-            'contain.text',
-            'Your Chemotion instance is ready!'
-        )
+        cy.visit(Cypress.env('TARGET'))
+        cy.contains('Welcome to Chemotion Electronic Lab Notebook.')
     })
 
     it('Login as dummy user', () => {
-        cy.get('#user_login').type(testuser.abbr)
-        cy.get('#user_password').type(testuser.password)
+        cy.get('#user_login').type(personuser.abbr)
+        cy.get('#user_password').type(personuser.password)
         cy.get('#new_user > button[type=submit]').click()
         cy.get('div.title').should('contain.text', 'Collections')
     })
@@ -207,5 +278,34 @@ describe('User Test', () => {
         req()
 
         cy.log('done.')
+    })
+
+    it('Export Collection', () => {
+        // export a collection
+        cy.getCookie('_chemotion_session')
+            .should('exist')
+            .then((c) => {
+                console.log(c)
+                adminuser.cookie = c
+            })
+
+        cy.wait(2000)
+        cy.get('#export-dropdown').click()
+        cy.get('a[role="menuitem"]').contains('Export collections').click()
+        cy.get('#export-collection-check-all').click()
+        cy.get('#md-export-dropdown').click()
+        cy.log('done.')
+    })
+
+    it('Remain logout while back browsing', () => {
+
+        // after logout browse back and access homepage to see if it logs out correctly
+        cy.get('a[title="Log out"]', { timeout: 10000 }).should('be.visible')
+        cy.get('a[title="Log out"]').click({force: true})
+        cy.go('back')
+        cy.visit(Cypress.env('TARGET'))
+        cy.contains('Welcome to Chemotion Electronic Lab Notebook.')
+
+        cy.log("Log out successfuly ")
     })
 })
